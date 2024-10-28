@@ -1,38 +1,81 @@
-.App {
-  text-align: center;
+.roll-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 0;
+    overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    transition: height 2s ease-out;
+}
+.roll-down {
+    height: 600px;
+    width: 100%;
+}
+.rolled-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translateY(-100%);
+    animation: unroll 2s forwards ease-out;
+}
+.loading {
+    width: 2rem;
+    height: 2rem;
+    border: 5px solid #f3f3f3;
+    border-top: 6px solid #9c41f2;
+    border-radius: 100%;
+    margin: auto;
+    visibility: hidden;
+    animation: spin 1s infinite linear;
+}
+.loading.active {
+    visibility: visible;
+}
+.stars {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: -1;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px white;
+    animation: twinkling 2s infinite ease-in-out alternate;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+@keyframes twinkling {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes unroll {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(0);
+    }
 }
