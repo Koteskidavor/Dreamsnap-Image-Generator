@@ -135,7 +135,7 @@ function App() {
                             </InputAdornment>
                         )
                     }}
-                    sx={{ background: 'white', color: 'black', }}
+                    sx={{ background: 'white', color: 'black', borderRadius: '4px' }}
                 />
            </Box>
         </div>
