@@ -7,47 +7,52 @@ function App() {
   const [imageQuery, setImageQuery] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const query = async (data) => {
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
-      {
-        headers: {
-          Authorization: "Bearer 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",
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify(data),
+    try {
+      const response = await fetch(
+        "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.REACT_APP_HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify(data),
+        }
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error:", response.status, errorText);
+        throw new Error(`API Error: ${response.status}`);
       }
-    );
-    const result = await response.blob();
-    return result;
+      const result = await response.blob();
+      return result;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
   };
   const generateImage = async () => {
     if (!imageQuery) return;
     setImage("");
     setIsGenerating(true);
 
-    const xhr = new XMLHttpRequest();
-
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        const imageBlob = xhr.response;
-        const url = URL.createObjectURL(imageBlob);
-        setImage(url);
-      } else {
-        console.log("Image generation failed", xhr.statusText);
-      }
+    try {
+      const imageBlob = await query({
+        inputs: imageQuery,
+        parameters: {
+          num_inference_steps: 4,
+          height: 1024,
+          width: 1024,
+        },
+      });
+      const url = URL.createObjectURL(imageBlob);
+      setImage(url);
+    } catch (error) {
+      console.error("Failed to generate image:", error);
+    } finally {
       setIsGenerating(false);
-    };
-    xhr.onerror = function () {
-      console.log("Request failed");
-      setIsGenerating(false);
-    };
-
-    const imageBlob = await query({ inputs: imageQuery });
-    const url = URL.createObjectURL(imageBlob);
-
-    setImage(url);
-    setIsGenerating(false);
+    }
   };
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
