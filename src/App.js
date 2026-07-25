@@ -1,45 +1,40 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { TextField, Box, Button, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { InferenceClient } from "@huggingface/inference";
 import "./App.css";
+
+const MODEL_NAME = "black-forest-labs/FLUX.1-schnell";
+
 function App() {
   const [image, setImage] = useState("");
   const [imageQuery, setImageQuery] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const query = async (data) => {
-    try {
-      const response = await fetch(
-        "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
 
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.REACT_APP_HUGGING_FACE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-          body: JSON.stringify(data),
-        }
-      );
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API Error:", response.status, errorText);
-        throw new Error(`API Error: ${response.status}`);
-      }
-      const result = await response.blob();
-      return result;
-    } catch (error) {
-      console.error("Fetch error:", error);
-      throw error;
+  const hfClient = useMemo(() => {
+    const apiKey = process.env.REACT_APP_HUGGING_FACE_API_KEY;
+    if (!apiKey) {
+      console.error("Missing REACT_APP_HUGGING_FACE_API_KEY environment variable");
+      return null;
     }
-  };
+    return new InferenceClient(apiKey);
+  }, []);
+
   const generateImage = async () => {
     if (!imageQuery) return;
+    if (!hfClient) {
+      console.error("Hugging Face client not initialized");
+      return;
+    }
+
     setImage("");
     setIsGenerating(true);
 
     try {
-      const imageBlob = await query({
+      const imageBlob = await hfClient.textToImage({
+        model: MODEL_NAME,
         inputs: imageQuery,
+        provider: "auto",
         parameters: {
           num_inference_steps: 4,
           height: 1024,
@@ -54,12 +49,15 @@ function App() {
       setIsGenerating(false);
     }
   };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       generateImage();
     }
   };
+
   const canvasRef = useRef();
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -107,6 +105,7 @@ function App() {
       window.cancelAnimationFrame(animateStars);
     };
   }, []);
+
   return (
     <div>
       <canvas
@@ -131,7 +130,7 @@ function App() {
       <Box
         className={`loading ${isGenerating ? "active" : ""}`}
         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      ></Box>
+      />
       <Box
         sx={{
           display: "flex",
